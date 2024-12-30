@@ -2,6 +2,7 @@ import streamlit as st
 import pyppeteer
 from scrape import scrape, extract_only_content, clean, split_dom_content
 from parse import parse_with_groq
+import asyncio
 
 # Streamlit App Title
 st.title("The Ultimate Web Scraper 🚀")
@@ -20,19 +21,17 @@ if st.button("Scrape"):
         # Exception Handling for the Scrape Function
         try:
             # Use Pyppeteer to handle headless browser scraping
-            import asyncio
-            from pyppeteer import launch
-            
             async def get_content():
-                browser = await launch(headless=True)
+                browser = await pyppeteer.launch(headless=True)
                 page = await browser.newPage()
                 await page.goto(url)
                 content = await page.content()
                 await browser.close()
                 return content
             
-            content = asyncio.get_event_loop().run_until_complete(get_content())
-            
+            # Run the async function using asyncio.run() in the Streamlit thread
+            content = asyncio.run(get_content())
+
             # Proceed with scraping logic
             results = scrape(content)
             if results:
