@@ -5,18 +5,30 @@ def scrape(website):
     print("Launching Playwright 🚀")
 
     try:
+        # Launching Playwright browser
         with sync_playwright() as p:
-            # Launch headless browser
             browser = p.chromium.launch(headless=True)  # Set headless=True for no GUI
             page = browser.new_page()
+
+            # Set custom user-agent to avoid blocking
+            page.set_user_agent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36")
+
+            # Navigate to the website
             page.goto(website)
 
-            # Wait for the body to load
+            # Wait for the page body to load
             page.wait_for_selector("body")
-            
-            # Get page source
+
+            # Get the page source
             page_source = page.content()
+
+            # Log the first 500 characters of the page content for debugging
+            print("Page content fetched (first 500 chars):", page_source[:500])
+
+            # Close the browser
             browser.close()
+
+            # Return the page source
             return page_source
 
     except Exception as e:
