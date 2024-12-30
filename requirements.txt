@@ -8,3 +8,5 @@ html5lib
 python-dotenv
 groq
 webdriver-manager
+selenium
+chromedriver-autoinstaller
