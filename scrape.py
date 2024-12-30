@@ -3,7 +3,6 @@ from pyppeteer import launch
 from bs4 import BeautifulSoup
 import streamlit as st
 
-@st.cache_data
 async def scrape_with_pyppeteer(url):
     """Scrapes the website using Pyppeteer (Headless Chrome)."""
     browser = await launch(headless=True)
@@ -25,6 +24,7 @@ def scrape(url):
     except Exception as e:
         st.error(f"Scraping failed: {str(e)}")
         return None
+
 
 def extract_only_content(content):
     """Extracts the body content from an HTML document."""
