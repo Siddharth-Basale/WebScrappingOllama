@@ -6,14 +6,18 @@ from selenium.webdriver.support import expected_conditions as EC
 from webdriver_manager.chrome import ChromeDriverManager
 from bs4 import BeautifulSoup
 import tempfile
+import logging
+
+# Set up logging for better traceability
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 def scrape(website):
-    print("Launching WebDriver 🚀")
+    logger.info("Launching WebDriver 🚀")
 
     # Initialize Chrome options
     options = webdriver.ChromeOptions()
     options.add_argument("--disable-gpu")  # Disable GPU acceleration
-    # Comment out the next line for non-headless mode
     options.add_argument("--headless")  # Run in headless mode
     options.add_argument("--no-sandbox")  # Bypass OS security model
     options.add_argument("--disable-dev-shm-usage")  # Use shared memory
@@ -24,25 +28,26 @@ def scrape(website):
     options.add_argument(f"--user-data-dir={temp_dir}")
 
     # Initialize WebDriver
-    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
-
     try:
+        driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
         driver.get(website)
-        print(f"Scraping {website}")
+        logger.info(f"Scraping {website}")
 
-        # Wait for body element
+        # Wait for body element to be loaded
         WebDriverWait(driver, 10).until(
             EC.presence_of_element_located((By.TAG_NAME, "body"))
         )
-        return driver.page_source
+        page_source = driver.page_source
+        logger.info("Scraping successful!")
+        return page_source
 
     except Exception as e:
-        print(f"An error occurred: {e}")
+        logger.error(f"An error occurred: {str(e)}")
         return None
 
     finally:
-        driver.quit()
-        print("WebDriver closed 🛑")
+        driver.quit()  # Ensure the WebDriver is closed properly
+        logger.info("WebDriver closed 🛑")
 
 
 def extract_only_content(content):
