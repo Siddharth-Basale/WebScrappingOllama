@@ -1,56 +1,27 @@
-from selenium import webdriver
-from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from webdriver_manager.chrome import ChromeDriverManager
+from playwright.sync_api import sync_playwright
 from bs4 import BeautifulSoup
-import tempfile
-import logging
-
-# Set up logging for better traceability
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
 
 def scrape(website):
-    logger.info("Launching WebDriver 🚀")
-
-    # Initialize Chrome options
-    options = webdriver.ChromeOptions()
-    options.add_argument("--disable-gpu")  # Disable GPU acceleration
-    options.add_argument("--headless")  # Run in headless mode
-    options.add_argument("--no-sandbox")  # Bypass OS security model
-    options.add_argument("--disable-dev-shm-usage")  # Use shared memory
-    options.add_argument("--remote-debugging-port=9222")  # Enable debugging
-
-    # Set user data directory
-    temp_dir = tempfile.mkdtemp()
-    options.add_argument(f"--user-data-dir={temp_dir}")
-
-    driver = None  # Initialize the driver variable to avoid the error
+    print("Launching Playwright 🚀")
 
     try:
-        # Initialize WebDriver
-        driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
-        driver.get(website)
-        logger.info(f"Scraping {website}")
+        with sync_playwright() as p:
+            # Launch headless browser
+            browser = p.chromium.launch(headless=True)  # Set headless=True for no GUI
+            page = browser.new_page()
+            page.goto(website)
 
-        # Wait for body element to be loaded
-        WebDriverWait(driver, 10).until(
-            EC.presence_of_element_located((By.TAG_NAME, "body"))
-        )
-        page_source = driver.page_source
-        logger.info("Scraping successful!")
-        return page_source
+            # Wait for the body to load
+            page.wait_for_selector("body")
+            
+            # Get page source
+            page_source = page.content()
+            browser.close()
+            return page_source
 
     except Exception as e:
-        logger.error(f"An error occurred: {str(e)}")
+        print(f"An error occurred: {e}")
         return None
-
-    finally:
-        if driver:
-            driver.quit()  # Ensure the WebDriver is closed properly
-            logger.info("WebDriver closed 🛑")
 
 def extract_only_content(content):
     """Extracts the body content from an HTML document."""
