@@ -1,14 +1,12 @@
 import streamlit as st
-import pyppeteer
 from scrape import scrape, extract_only_content, clean, split_dom_content
 from parse import parse_with_groq
-import asyncio
 
 # Streamlit App Title
 st.title("The Ultimate Web Scraper 🚀")
 
 # URL Input Field
-url = st.text_input("Enter the URL to scrape (Enter complete URL, for eg: https://www.swiggy.com):")
+url = st.text_input("Enter the URL to scrape (e.g., https://www.swiggy.com):")
 
 # Scrape Button
 if st.button("Scrape"):
@@ -18,22 +16,9 @@ if st.button("Scrape"):
     else:
         st.write("Scraping the URL:", url)
         
-        # Exception Handling for the Scrape Function
         try:
-            # Use Pyppeteer to handle headless browser scraping
-            async def get_content():
-                browser = await pyppeteer.launch(headless=True)
-                page = await browser.newPage()
-                await page.goto(url)
-                content = await page.content()
-                await browser.close()
-                return content
-            
-            # Run the async function using asyncio.run() in the Streamlit thread
-            content = asyncio.run(get_content())
-
-            # Proceed with scraping logic
-            results = scrape(content)
+            # Call the scraping function
+            results = scrape(url)
             if results:
                 st.success("Scraping completed successfully!")
                 body_content = extract_only_content(results)
@@ -47,17 +32,14 @@ if st.button("Scrape"):
             else:
                 st.warning("No results were returned from the scrape.")
         except Exception as e:
-            # Display error details in Streamlit
             st.error(f"An error occurred: {str(e)}")
-
         
 if "dom_content" in st.session_state:
-    parse_description = st.text_input(
-        "Describe what you would like to pass (e.g., 'I am from Pune and I want to try something that I won't try regularly, suggest me.')")
+    parse_description = st.text_input("Describe what you would like to pass (e.g., 'Suggest me a product')")
 
     if st.button("Parse Content"):
         if parse_description:
-            st.write("Parsing the content to ollama 🤔 ")
+            st.write("Parsing the content 🤔")
             dom_chunks = split_dom_content(st.session_state.dom_content)
             results = parse_with_groq(dom_chunks, parse_description)
             st.write(results)
