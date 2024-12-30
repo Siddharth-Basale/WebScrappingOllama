@@ -1,5 +1,5 @@
 import streamlit as st
-from playwright.sync_api import sync_playwright
+import pyppeteer
 from scrape import scrape, extract_only_content, clean, split_dom_content
 from parse import parse_with_groq
 
@@ -19,14 +19,20 @@ if st.button("Scrape"):
         
         # Exception Handling for the Scrape Function
         try:
-            # Use Playwright to handle headless browser scraping
-            with sync_playwright() as p:
-                browser = p.chromium.launch(headless=True)
-                page = browser.new_page()
-                page.goto(url)
-                content = page.content()
-                browser.close()
-
+            # Use Pyppeteer to handle headless browser scraping
+            import asyncio
+            from pyppeteer import launch
+            
+            async def get_content():
+                browser = await launch(headless=True)
+                page = await browser.newPage()
+                await page.goto(url)
+                content = await page.content()
+                await browser.close()
+                return content
+            
+            content = asyncio.get_event_loop().run_until_complete(get_content())
+            
             # Proceed with scraping logic
             results = scrape(content)
             if results:
