@@ -1,12 +1,7 @@
 import streamlit as st
-import chromedriver_autoinstaller
-from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
+from playwright.sync_api import sync_playwright
 from scrape import scrape, extract_only_content, clean, split_dom_content
 from parse import parse_with_groq
-
-# Automatically install the correct version of ChromeDriver
-chromedriver_autoinstaller.install()
 
 # Streamlit App Title
 st.title("The Ultimate Web Scraper 🚀")
@@ -24,19 +19,16 @@ if st.button("Scrape"):
         
         # Exception Handling for the Scrape Function
         try:
-            # Set up headless options for Chrome
-            chrome_options = Options()
-            chrome_options.add_argument('--headless')
-            chrome_options.add_argument('--no-sandbox')
-            chrome_options.add_argument('--disable-dev-shm-usage')
+            # Use Playwright to handle headless browser scraping
+            with sync_playwright() as p:
+                browser = p.chromium.launch(headless=True)
+                page = browser.new_page()
+                page.goto(url)
+                content = page.content()
+                browser.close()
 
-            # Initialize the WebDriver
-            driver = webdriver.Chrome(options=chrome_options)
-
-            # Scrape the content using the provided URL
-            results = scrape(url, driver)
-            driver.quit()  # Close the browser after scraping
-
+            # Proceed with scraping logic
+            results = scrape(content)
             if results:
                 st.success("Scraping completed successfully!")
                 body_content = extract_only_content(results)
