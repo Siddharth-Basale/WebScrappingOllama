@@ -10,6 +10,6 @@ groq
 webdriver-manager==3.8.6
 selenium
 chromedriver-autoinstaller
-pyppeteer
+pyppeteer==1.0.2
 asyncio
 playwright
