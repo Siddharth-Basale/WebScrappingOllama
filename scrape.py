@@ -1,65 +1,26 @@
-import time
-from selenium import webdriver
-from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.common.by import By
-from selenium.webdriver.chrome.options import Options
-from webdriver_manager.chrome import ChromeDriverManager
+import asyncio
+from pyppeteer import launch
 from bs4 import BeautifulSoup
-import os
+import streamlit as st
 
-def install_dependencies():
-    """Install required system dependencies."""
-    dependencies = [
-        'libnss3', 
-        'libatk-bridge2.0-0', 
-        'libgtk-3-0',
-        'libx11-xcb1', 
-        'xvfb', 
-        'x11-utils'
-    ]
-    for dep in dependencies:
-        os.system(f"apt-get install -y {dep}")
+@st.cache_data
+async def scrape_with_pyppeteer(url):
+    """Scrapes the website using Pyppeteer (Headless Chrome)."""
+    browser = await launch(headless=True)
+    page = await browser.newPage()
+    await page.goto(url)
+    content = await page.content()
+    await browser.close()
+    return content
 
-install_dependencies()
-
-def scrape(website):
-    print("Launching Selenium WebDriver 🚀")
-
-    # Set up headless Chrome options
-    chrome_options = Options()
-    chrome_options.add_argument("--headless")  # Run Chrome in headless mode (without UI)
-    chrome_options.add_argument("--no-sandbox")
-    chrome_options.add_argument("--disable-dev-shm-usage")
-
-    # Setup WebDriver
-    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
-
+def scrape(url):
+    """Main scraping function to call pyppeteer scraper."""
     try:
-        # Navigate to the website
-        print(f"Navigating to {website}")
-        driver.get(website)
-
-        # Wait for the page to load (Adjust time if necessary)
-        time.sleep(5)  # You can adjust this if the page takes longer to load
-
-        # Get the page source
-        page_source = driver.page_source
-
-        # Parse the page using BeautifulSoup
-        soup = BeautifulSoup(page_source, "html.parser")
-
-        # Print out first 500 characters for debugging
-        print(f"Page content fetched (first 500 chars): {page_source[:500]}")
-
-        # Return the cleaned-up content (if you only need text)
-        return soup.prettify()
-
+        content = asyncio.get_event_loop().run_until_complete(scrape_with_pyppeteer(url))
+        return content
     except Exception as e:
-        print(f"An error occurred: {e}")
+        st.error(f"Scraping failed: {str(e)}")
         return None
-    finally:
-        # Close the WebDriver
-        driver.quit()
 
 def extract_only_content(content):
     """Extracts the body content from an HTML document."""
