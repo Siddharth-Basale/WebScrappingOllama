@@ -1,30 +1,43 @@
 import asyncio
+import threading
 from pyppeteer import launch
 from bs4 import BeautifulSoup
 import streamlit as st
 
-async def scrape_with_pyppeteer(url):
-    """Scrapes the website using Pyppeteer (Headless Chrome)."""
-    browser = await launch(headless=True)
-    page = await browser.newPage()
-    await page.goto(url)
-    content = await page.content()
-    await browser.close()
-    return content
+def scrape_with_pyppeteer(url, result_queue):
+    """Scrapes the website using Pyppeteer (Headless Chrome) in a separate thread."""
+    async def fetch():
+        try:
+            browser = await launch(headless=True)
+            page = await browser.newPage()
+            await page.goto(url)
+            content = await page.content()
+            await browser.close()
+            result_queue.put(content)
+        except Exception as e:
+            result_queue.put(str(e))
+
+    # Create and run the async task in a separate event loop within the thread
+    loop = asyncio.new_event_loop()
+    threading.Thread(target=loop.run_until_complete, args=(fetch(),)).start()
 
 def scrape(url):
     """Main scraping function to call pyppeteer scraper."""
     try:
-        # Create a new event loop to ensure the asyncio code runs correctly within Streamlit
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
+        result_queue = queue.Queue()
+        # Start the scraping in a separate thread
+        scrape_with_pyppeteer(url, result_queue)
+
+        # Wait for the result (this could also be improved by making it async)
+        content = result_queue.get()
         
-        content = loop.run_until_complete(scrape_with_pyppeteer(url))
+        if isinstance(content, str) and "scraping failed" in content.lower():
+            st.error(f"Scraping failed: {content}")
+            return None
         return content
     except Exception as e:
         st.error(f"Scraping failed: {str(e)}")
         return None
-
 
 def extract_only_content(content):
     """Extracts the body content from an HTML document."""
