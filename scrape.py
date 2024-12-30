@@ -27,8 +27,10 @@ def scrape(website):
     temp_dir = tempfile.mkdtemp()
     options.add_argument(f"--user-data-dir={temp_dir}")
 
-    # Initialize WebDriver
+    driver = None  # Initialize the driver variable to avoid the error
+
     try:
+        # Initialize WebDriver
         driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
         driver.get(website)
         logger.info(f"Scraping {website}")
@@ -46,9 +48,9 @@ def scrape(website):
         return None
 
     finally:
-        driver.quit()  # Ensure the WebDriver is closed properly
-        logger.info("WebDriver closed 🛑")
-
+        if driver:
+            driver.quit()  # Ensure the WebDriver is closed properly
+            logger.info("WebDriver closed 🛑")
 
 def extract_only_content(content):
     """Extracts the body content from an HTML document."""
