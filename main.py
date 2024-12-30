@@ -15,15 +15,18 @@ if st.button("Scrape"):
         st.error("Please enter a valid URL.")
     else:
         st.write("Scraping the URL:", url)
-        
+
         # Exception Handling for the Scrape Function
         try:
+            # Await the result of the async scrape function
             results = scrape(url)
+
             if results:
                 st.success("Scraping completed successfully!")
                 body_content = extract_only_content(results)
                 cleaned_content = clean(body_content)
 
+                # Store cleaned content in session state
                 st.session_state.dom_content = cleaned_content
 
                 with st.expander("View DOM Content"):
@@ -42,6 +45,10 @@ if "dom_content" in st.session_state:
     if st.button("Parse Content"):
         if parse_description:
             st.write("Parsing the content to ollama 🤔 ")
+            
+            # Split DOM content into manageable chunks
             dom_chunks = split_dom_content(st.session_state.dom_content)
+
+            # Parse content using Groq
             results = parse_with_groq(dom_chunks, parse_description)
             st.write(results)
