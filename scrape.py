@@ -1,45 +1,49 @@
-from playwright.sync_api import sync_playwright
+import time
+from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.common.by import By
+from selenium.webdriver.chrome.options import Options
+from webdriver_manager.chrome import ChromeDriverManager
 from bs4 import BeautifulSoup
 
 def scrape(website):
-    print("Launching Playwright 🚀")
+    print("Launching Selenium WebDriver 🚀")
+
+    # Set up headless Chrome options
+    chrome_options = Options()
+    chrome_options.add_argument("--headless")  # Run Chrome in headless mode (without UI)
+    chrome_options.add_argument("--no-sandbox")
+    chrome_options.add_argument("--disable-dev-shm-usage")
+
+    # Setup WebDriver
+    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
 
     try:
-        # Launching Playwright browser
-        with sync_playwright() as p:
-            browser = p.chromium.launch(headless=True)  # Set headless=True for no GUI
-            page = browser.new_page()
+        # Navigate to the website
+        print(f"Navigating to {website}")
+        driver.get(website)
 
-            # Set custom user-agent to avoid blocking
-            page.set_user_agent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36")
+        # Wait for the page to load (Adjust time if necessary)
+        time.sleep(5)  # You can adjust this if the page takes longer to load
 
-            # Navigate to the website
-            print(f"Navigating to {website}")
-            page.goto(website)
+        # Get the page source
+        page_source = driver.page_source
 
-            # Wait for the page body to load
-            page.wait_for_selector("body", timeout=10000)  # Increased timeout to 10 seconds
+        # Parse the page using BeautifulSoup
+        soup = BeautifulSoup(page_source, "html.parser")
 
-            # Check if the body is actually loaded
-            if not page.is_visible("body"):
-                print("Body element is not visible!")
-                return None
+        # Print out first 500 characters for debugging
+        print(f"Page content fetched (first 500 chars): {page_source[:500]}")
 
-            # Get the page source
-            page_source = page.content()
-
-            # Log the first 500 characters of the page content for debugging
-            print("Page content fetched (first 500 chars):", page_source[:500])
-
-            # Close the browser
-            browser.close()
-
-            # Return the page source
-            return page_source
+        # Return the cleaned-up content (if you only need text)
+        return soup.prettify()
 
     except Exception as e:
         print(f"An error occurred: {e}")
         return None
+    finally:
+        # Close the WebDriver
+        driver.quit()
 
 def extract_only_content(content):
     """Extracts the body content from an HTML document."""
