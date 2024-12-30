@@ -1,8 +1,9 @@
 import asyncio
 import threading
-import queue  # Import the queue module
+import queue
 from pyppeteer import launch
 from bs4 import BeautifulSoup
+import time
 import streamlit as st
 
 def scrape_with_pyppeteer(url, result_queue):
@@ -26,7 +27,6 @@ def scrape(url):
     """Main scraping function to call pyppeteer scraper."""
     try:
         result_queue = queue.Queue()  # Initialize the queue
-        # Start the scraping in a separate thread
         scrape_with_pyppeteer(url, result_queue)
 
         # Wait for the result (this could also be improved by making it async)
@@ -35,11 +35,18 @@ def scrape(url):
         if isinstance(content, str) and "scraping failed" in content.lower():
             st.error(f"Scraping failed: {content}")
             return None
+        
+        if not content:
+            st.error("Scraping returned empty content.")
+            return None
+        
+        # Debugging: log the first 500 characters of the content
+        st.write(f"Fetched content preview (first 500 characters): {content[:500]}")
+        
         return content
     except Exception as e:
         st.error(f"Scraping failed: {str(e)}")
         return None
-
 
 def extract_only_content(content):
     """Extracts the body content from an HTML document."""
@@ -67,13 +74,7 @@ def clean(body):
     cleaned_content = soup.get_text(separator="\n")
     cleaned_content = "\n".join(line.strip() for line in cleaned_content.splitlines() if line.strip())
     
-    return cleaned_content
-
-def split_dom_content(dom_content, max_length=6000):
-    """Splits the DOM content into chunks of a specified maximum length."""
-    if not dom_content:
-        raise ValueError("DOM content is empty or None. Cannot split content.")
+    if not cleaned_content:
+        raise ValueError("Cleaned content is empty after cleaning.")
     
-    return [
-        dom_content[i:i + max_length] for i in range(0, len(dom_content), max_length)
-    ]
+    return cleaned_content
