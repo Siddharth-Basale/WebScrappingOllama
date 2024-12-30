@@ -78,3 +78,13 @@ def clean(body):
         raise ValueError("Cleaned content is empty after cleaning.")
     
     return cleaned_content
+
+
+def split_dom_content(dom_content, max_length=6000):
+    """Splits the DOM content into chunks of a specified maximum length."""
+    if not dom_content:
+        raise ValueError("DOM content is empty or None. Cannot split content.")
+    
+    return [
+        dom_content[i:i + max_length] for i in range(0, len(dom_content), max_length)
+    ]
