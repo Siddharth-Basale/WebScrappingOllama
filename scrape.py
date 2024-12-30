@@ -5,6 +5,22 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
 from webdriver_manager.chrome import ChromeDriverManager
 from bs4 import BeautifulSoup
+import os
+
+def install_dependencies():
+    """Install required system dependencies."""
+    dependencies = [
+        'libnss3', 
+        'libatk-bridge2.0-0', 
+        'libgtk-3-0',
+        'libx11-xcb1', 
+        'xvfb', 
+        'x11-utils'
+    ]
+    for dep in dependencies:
+        os.system(f"apt-get install -y {dep}")
+
+install_dependencies()
 
 def scrape(website):
     print("Launching Selenium WebDriver 🚀")
