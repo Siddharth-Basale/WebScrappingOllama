@@ -16,7 +16,11 @@ async def scrape_with_pyppeteer(url):
 def scrape(url):
     """Main scraping function to call pyppeteer scraper."""
     try:
-        content = asyncio.get_event_loop().run_until_complete(scrape_with_pyppeteer(url))
+        # Create a new event loop to ensure the asyncio code runs correctly within Streamlit
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        
+        content = loop.run_until_complete(scrape_with_pyppeteer(url))
         return content
     except Exception as e:
         st.error(f"Scraping failed: {str(e)}")
