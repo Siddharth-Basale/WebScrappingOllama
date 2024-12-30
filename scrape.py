@@ -12,12 +12,23 @@ def scrape_with_pyppeteer(url, result_queue):
         try:
             browser = await launch(headless=True)
             page = await browser.newPage()
-            await page.goto(url)
+
+            # Wait for the page to load completely by checking for a key element
+            await page.goto(url, {'waitUntil': 'networkidle0'})  # Wait until no network connections are active
+            time.sleep(2)  # Adding a slight delay to ensure content is loaded
+
+            # Get the page content
             content = await page.content()
-            await browser.close()
+            if not content:
+                result_queue.put("Scraping failed: No content found.")
+                await browser.close()
+                return
+
             result_queue.put(content)
+            await browser.close()
+
         except Exception as e:
-            result_queue.put(str(e))
+            result_queue.put(f"Scraping failed: {str(e)}")
 
     # Create and run the async task in a separate event loop within the thread
     loop = asyncio.new_event_loop()
@@ -78,6 +89,7 @@ def clean(body):
         raise ValueError("Cleaned content is empty after cleaning.")
     
     return cleaned_content
+
 
 
 def split_dom_content(dom_content, max_length=6000):
