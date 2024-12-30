@@ -19,8 +19,8 @@ if st.button("Scrape"):
 
         # Exception Handling for the Scrape Function
         try:
-            # Await the result of the async scrape function
-            results = asyncio.run(scrape(url))  # Run the async scrape function here
+            # Use asyncio.create_task() instead of asyncio.run() to run async code within the main thread
+            results = asyncio.get_event_loop().run_until_complete(scrape(url))
 
             if results:
                 st.success("Scraping completed successfully!")
