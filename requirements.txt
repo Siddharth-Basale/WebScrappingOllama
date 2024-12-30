@@ -13,5 +13,5 @@ chromedriver-autoinstaller
 pyppeteer==1.0.2
 asyncio
 playwright
-greenlet==1.1.0
+
 
