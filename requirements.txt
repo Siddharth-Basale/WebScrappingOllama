@@ -9,6 +9,6 @@ python-dotenv
 groq
 pyppeteer
 asyncio
-
+queue
 
 
