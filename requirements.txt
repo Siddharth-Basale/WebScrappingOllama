@@ -12,3 +12,4 @@ selenium
 chromedriver-autoinstaller
 pyppeteer
 asyncio
+playwright
