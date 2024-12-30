@@ -10,4 +10,4 @@ groq
 webdriver-manager
 selenium
 chromedriver-autoinstaller
-playwright
+pyppeteer
