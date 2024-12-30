@@ -14,10 +14,16 @@ def scrape(website):
             page.set_user_agent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36")
 
             # Navigate to the website
+            print(f"Navigating to {website}")
             page.goto(website)
 
             # Wait for the page body to load
-            page.wait_for_selector("body")
+            page.wait_for_selector("body", timeout=10000)  # Increased timeout to 10 seconds
+
+            # Check if the body is actually loaded
+            if not page.is_visible("body"):
+                print("Body element is not visible!")
+                return None
 
             # Get the page source
             page_source = page.content()
