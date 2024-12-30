@@ -1,7 +1,7 @@
 import streamlit as st
+import asyncio
 from scrape import scrape, extract_only_content, clean, split_dom_content
 from parse import parse_with_groq
-import asyncio
 
 # Streamlit App Title
 st.title("The Ultimate Web Scraper 🚀")
@@ -19,8 +19,11 @@ if st.button("Scrape"):
 
         # Exception Handling for the Scrape Function
         try:
-            # Use asyncio.create_task() instead of asyncio.run() to run async code within the main thread
-            results = asyncio.get_event_loop().run_until_complete(scrape(url))
+            # Running async function in the main thread using asyncio.run
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+
+            results = loop.run_until_complete(scrape(url))
 
             if results:
                 st.success("Scraping completed successfully!")
@@ -46,10 +49,11 @@ if "dom_content" in st.session_state:
     if st.button("Parse Content"):
         if parse_description:
             st.write("Parsing the content to ollama 🤔 ")
-            
+
             # Split DOM content into manageable chunks
             dom_chunks = split_dom_content(st.session_state.dom_content)
 
             # Parse content using Groq
             results = parse_with_groq(dom_chunks, parse_description)
             st.write(results)
+
