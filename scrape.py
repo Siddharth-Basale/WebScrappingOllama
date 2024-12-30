@@ -1,5 +1,6 @@
 import asyncio
 import threading
+import queue  # Import the queue module
 from pyppeteer import launch
 from bs4 import BeautifulSoup
 import streamlit as st
@@ -24,7 +25,7 @@ def scrape_with_pyppeteer(url, result_queue):
 def scrape(url):
     """Main scraping function to call pyppeteer scraper."""
     try:
-        result_queue = queue.Queue()
+        result_queue = queue.Queue()  # Initialize the queue
         # Start the scraping in a separate thread
         scrape_with_pyppeteer(url, result_queue)
 
@@ -38,6 +39,7 @@ def scrape(url):
     except Exception as e:
         st.error(f"Scraping failed: {str(e)}")
         return None
+
 
 def extract_only_content(content):
     """Extracts the body content from an HTML document."""
