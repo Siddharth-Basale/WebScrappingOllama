@@ -1,6 +1,7 @@
 import streamlit as st
 from scrape import scrape, extract_only_content, clean, split_dom_content
 from parse import parse_with_groq
+import asyncio
 
 # Streamlit App Title
 st.title("The Ultimate Web Scraper 🚀")
@@ -19,7 +20,7 @@ if st.button("Scrape"):
         # Exception Handling for the Scrape Function
         try:
             # Await the result of the async scrape function
-            results = scrape(url)
+            results = asyncio.run(scrape(url))  # Run the async scrape function here
 
             if results:
                 st.success("Scraping completed successfully!")
